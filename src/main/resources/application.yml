@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/learn_springboot
+    username: learn_user # username untuk akses database
+    password: learn_password # password dari username
+    hikari:
+      maximum-pool-size: 10 # menggunakan hikari untuk maximal pool
+  jpa:
+    hibernate:
+      ddl-auto: update    # dev: update ; prod: validate or none + migrations
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true # dev: true ; prod: false
+    open-in-view: false
+
+server:
+  port: 8080 # port yang akan digunakan untuk aplikasi
