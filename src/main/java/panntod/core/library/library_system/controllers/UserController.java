@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import panntod.core.library.library_system.dto.commons.ApiResponse;
 import panntod.core.library.library_system.dto.commons.LoginResponse;
 import panntod.core.library.library_system.dto.commons.PageResponse;
+import panntod.core.library.library_system.dto.commons.TokenResponse;
 import panntod.core.library.library_system.dto.users.*;
 import panntod.core.library.library_system.services.UserService;
 import panntod.core.library.library_system.utils.SortUtil;
@@ -42,7 +43,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDto>> create(@Valid @RequestBody UserCreateDto dto) {
         var createUserDto = userService.create(dto);
         return ResponseEntity.status(201).body(
-                new ApiResponse<>("success","SUCCESS_GET_USER", "User created successfully", Optional.of(createUserDto))
+                new ApiResponse<>("success","SUCCESS_CREATE_USER", "User created successfully", Optional.of(createUserDto))
         );
     }
 
@@ -108,7 +109,7 @@ public class UserController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@RequestBody Map<String, String> body) {
+    public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(@RequestBody Map<String, String> body) {
         String refreshToken = body.get("refreshToken");
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.badRequest().body(
@@ -120,14 +121,13 @@ public class UserController {
             String newAccessToken = userService.refreshAccessToken(refreshToken);
             return ResponseEntity.ok(
                     new ApiResponse<>("success","SUCCESS_GENERATE_ACCESS_TOKEN", "Access token refreshed successfully", Optional.of(
-                            new LoginResponse(null, null, null, null, newAccessToken, refreshToken)
+                            new TokenResponse(newAccessToken, refreshToken)
                     ))
             );
         } catch (RuntimeException ex) {
             return ResponseEntity.status(401).body(
-                    new ApiResponse<>("error","FAILED_", ex.getMessage(), Optional.empty())
+                    new ApiResponse<>("error","FAILED_GENERATE_ACCESS_TOKEN", ex.getMessage(), Optional.empty())
             );
         }
     }
-
 }

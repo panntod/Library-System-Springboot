@@ -83,6 +83,9 @@ public class UserService {
         existing.setAddress(updateDto.getAddress());
         existing.setPhoneNumber(updateDto.getPhoneNumber());
 
+        // Only Super Admin
+        existing.setIsActive(updateDto.getIsActive());
+
         if (updateDto.getPassword() != null && !updateDto.getPassword().isBlank()) {
             existing.setPassword(PasswordUtil.hashPassword(updateDto.getPassword()));
         }
@@ -105,6 +108,8 @@ public class UserService {
         if (patchDto.email() != null) existing.setEmail(patchDto.email());
         if (patchDto.address() != null) existing.setAddress(patchDto.address());
         if (patchDto.phoneNumber() != null) existing.setPhoneNumber(patchDto.phoneNumber());
+
+        // Only Super Admin
         if (patchDto.isActive() != null) existing.setIsActive(patchDto.isActive());
 
         if (patchDto.password() != null && !patchDto.password().isBlank()) {
@@ -165,5 +170,4 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return JwtUtil.generateAccessToken(user.getId(), user.getEmail());
     }
-
 }

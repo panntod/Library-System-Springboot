@@ -27,6 +27,7 @@ public class UserCreateDto {
     )
     private String password;
 
+    private Boolean isActive;
     private String address;
 
     @NotBlank(message = "Phone Number is required")
