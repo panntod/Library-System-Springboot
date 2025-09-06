@@ -17,8 +17,8 @@ public class BookSpecification {
                 return predicate;
             }
 
-            if (searchRequest.name() != null && !searchRequest.name().isBlank()) {
-                String pattern = "%" + searchRequest.name().toLowerCase() + "%";
+            if (searchRequest.getName() != null && !searchRequest.getName().isBlank()) {
+                String pattern = "%" + searchRequest.getName().toLowerCase() + "%";
 
                 predicate = criteriaBuilder.and(
                         predicate,
@@ -26,8 +26,8 @@ public class BookSpecification {
                 );
             }
 
-            if (searchRequest.author() != null && !searchRequest.author().isBlank()) {
-                String pattern = "%" + searchRequest.author().toLowerCase() + "%";
+            if (searchRequest.getAuthor() != null && !searchRequest.getAuthor().isBlank()) {
+                String pattern = "%" + searchRequest.getAuthor().toLowerCase() + "%";
 
                 predicate = criteriaBuilder.and(
                         predicate,
@@ -35,12 +35,19 @@ public class BookSpecification {
                 );
             }
 
-            if(searchRequest.category() != null && !searchRequest.category().isBlank()) {
-                String pattern = "%" + searchRequest.category().toLowerCase() + "%";
+            if (searchRequest.getCategory() != null && !searchRequest.getCategory().isBlank()) {
+                String pattern = "%" + searchRequest.getCategory().toLowerCase() + "%";
 
                 predicate = criteriaBuilder.and(
                         predicate,
                         criteriaBuilder.like(criteriaBuilder.lower(root.get("author")), pattern)
+                );
+            }
+
+            if (searchRequest.getIsActive() != null) {
+                predicate = criteriaBuilder.and(
+                        predicate,
+                        criteriaBuilder.equal(root.get("isActive"), searchRequest.getIsActive())
                 );
             }
 

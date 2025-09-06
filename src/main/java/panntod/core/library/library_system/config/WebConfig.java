@@ -8,9 +8,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**") // semua endpoint
-                .allowedOrigins("http://localhost:3000") // contoh aplikasi react.js
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:3000") // bisa ganti dengan domain tertentu
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE")
                 .allowCredentials(true);
     }
 }

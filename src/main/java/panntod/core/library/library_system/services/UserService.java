@@ -1,17 +1,23 @@
 package panntod.core.library.library_system.services;
 
 import org.springframework.data.domain.*;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import panntod.core.library.library_system.dto.commons.LoginResponse;
 import panntod.core.library.library_system.dto.commons.PageResponse;
 import panntod.core.library.library_system.dto.users.*;
 import panntod.core.library.library_system.entities.User;
+import panntod.core.library.library_system.enums.TokenType;
+import panntod.core.library.library_system.enums.UserRole;
 import panntod.core.library.library_system.mappers.UserMapper;
 import panntod.core.library.library_system.repositories.UserRepository;
 import panntod.core.library.library_system.specs.UserSpecification;
 import panntod.core.library.library_system.utils.JwtUtil;
 import panntod.core.library.library_system.utils.PasswordUtil;
+import panntod.core.library.library_system.utils.UserRoleUtil;
 
 import java.util.UUID;
 
@@ -27,6 +33,28 @@ public class UserService {
     }
 
     /**
+     * SEARCH users (default hanya active).
+     * Jika showSoftDelete = true maka hanya SUPER_ADMIN yang boleh.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<UserDto> search(UserSearchRequest req, Pageable pageable, boolean showSoftDelete) {
+        if (showSoftDelete) {
+            if (UserRoleUtil.getCurrentUserRole() != UserRole.SUPER_ADMIN) {
+                throw new AccessDeniedException("Only SUPER_ADMIN can view soft deleted users");
+            }
+        } else {
+            req.setIsActive(true);
+        }
+
+        var spec = UserSpecification.bySearch(req);
+        Page<User> page = repo.findAll(spec, pageable);
+
+        var content = page.stream().map(mapper::toDto).toList();
+
+        return new PageResponse<>(content, page.getTotalElements(), page.getTotalPages(), page.getNumber() + 1, page.getSize());
+    }
+
+    /**
      * CREATE user with hashed password
      */
     @Transactional
@@ -38,34 +66,11 @@ public class UserService {
     }
 
     /**
-     * SEARCH users with specifications
-     */
-    @Transactional(readOnly = true)
-    public PageResponse<UserDto> search(UserSearchRequest req, Pageable pageable) {
-        var spec = UserSpecification.bySearch(req);
-        Page<User> page = repo.findAll(spec, pageable);
-
-        var content = page.stream()
-                .map(mapper::toDto)
-                .toList();
-
-        return new PageResponse<>(
-                content,
-                page.getTotalElements(),
-                page.getTotalPages(),
-                page.getNumber() + 1,
-                page.getSize()
-        );
-    }
-
-    /**
      * FIND by ID
      */
     @Transactional(readOnly = true)
     public UserDto findById(UUID id) {
-        return repo.findById(id)
-                .map(mapper::toDto)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        return repo.findById(id).map(mapper::toDto).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     /**
@@ -73,8 +78,7 @@ public class UserService {
      */
     @Transactional
     public UserDto update(UUID id, UserCreateDto updateDto) {
-        User existing = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User existing = repo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
         // Update field langsung
         existing.setFirstName(updateDto.getFirstName());
@@ -101,8 +105,7 @@ public class UserService {
 
     @Transactional
     public UserDto patch(UUID id, UserPatchDto patchDto) {
-        User existing = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User existing = repo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
         if (patchDto.firstName() != null) existing.setFirstName(patchDto.firstName());
         if (patchDto.lastName() != null) existing.setLastName(patchDto.lastName());
@@ -129,10 +132,25 @@ public class UserService {
     }
 
     /**
-     * DELETE user
+     * SOFT DELETE (isActive = false)
      */
     @Transactional
-    public void delete(UUID id) {
+    public void softDelete(UUID id) {
+        User user = repo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setIsActive(false);
+        repo.save(user);
+    }
+
+    /**
+     * HARD DELETE (hanya SUPER_ADMIN)
+     */
+    @Transactional
+    public void hardDelete(UUID id) {
+        if (UserRoleUtil.getCurrentUserRole() != UserRole.SUPER_ADMIN) {
+            throw new AccessDeniedException("Only SUPER_ADMIN can perform hard delete");
+        }
+
         if (!repo.existsById(id)) {
             throw new RuntimeException("User not found");
         }
@@ -141,8 +159,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(UserLoginDto loginRequest) {
-        User user = repo.findByEmail(loginRequest.email().toLowerCase())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+        User user = repo.findByEmail(loginRequest.email().toLowerCase()).orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
         if (!PasswordUtil.checkPassword(loginRequest.password(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
@@ -152,24 +169,16 @@ public class UserService {
             throw new RuntimeException("User is inactive");
         }
 
-        String accessToken = JwtUtil.generateAccessToken(user.getId(), user.getEmail());
+        String accessToken = JwtUtil.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
         String refreshToken = JwtUtil.generateRefreshToken(user.getId());
 
-        return new LoginResponse(
-                user.getId(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail(),
-                accessToken,
-                refreshToken
-        );
+        return new LoginResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), accessToken, refreshToken);
     }
 
     @Transactional(readOnly = true)
     public String refreshAccessToken(String refreshToken) {
-        UUID userId = JwtUtil.getUserIdFromToken(refreshToken, "refresh");
-        User user = repo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return JwtUtil.generateAccessToken(user.getId(), user.getEmail());
+        UUID userId = JwtUtil.getUserIdFromToken(refreshToken, TokenType.REFRESH);
+        User user = repo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        return JwtUtil.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
     }
 }

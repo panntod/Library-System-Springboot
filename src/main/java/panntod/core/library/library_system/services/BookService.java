@@ -1,14 +1,17 @@
 package panntod.core.library.library_system.services;
 
 import org.springframework.data.domain.*;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import panntod.core.library.library_system.dto.books.*;
 import panntod.core.library.library_system.dto.commons.PageResponse;
 import panntod.core.library.library_system.entities.Book;
+import panntod.core.library.library_system.enums.UserRole;
 import panntod.core.library.library_system.mappers.BookMapper;
 import panntod.core.library.library_system.repositories.BookRepository;
 import panntod.core.library.library_system.specs.BookSpecification;
+import panntod.core.library.library_system.utils.UserRoleUtil;
 
 import java.util.UUID;
 
@@ -30,7 +33,15 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<BookDto> search(BookSearchRequest req, Pageable pageable) {
+    public PageResponse<BookDto> search(BookSearchRequest req, Pageable pageable, boolean showSoftDelete) {
+        if (showSoftDelete) {
+            if (UserRoleUtil.getCurrentUserRole() != UserRole.SUPER_ADMIN) {
+                throw new AccessDeniedException("Only SUPER_ADMIN can view soft deleted users");
+            }
+        } else {
+            req.setIsActive(true);
+        }
+
         var spec = BookSpecification.bySearch(req);
         Page<Book> page = repo.findAll(spec, pageable);
 
@@ -89,7 +100,20 @@ public class BookService {
     }
 
     @Transactional
-    public void delete(UUID id) {
+    public void softDelete(UUID id) {
+        Book book = repo.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
+
+        book.setIsActive(false);
+        repo.save(book);
+    }
+
+
+    @Transactional
+    public void hardDelete(UUID id) {
+        if (UserRoleUtil.getCurrentUserRole() != UserRole.SUPER_ADMIN) {
+            throw new AccessDeniedException("Only SUPER_ADMIN can perform hard delete");
+        }
+
         if (!repo.existsById(id)) {
             throw new RuntimeException("Book not found");
         }

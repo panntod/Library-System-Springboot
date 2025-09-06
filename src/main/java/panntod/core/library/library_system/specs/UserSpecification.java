@@ -20,8 +20,8 @@ public class UserSpecification {
             }
 
             // Search by full name (firstName + lastName)
-            if (searchRequest.fullname() != null && !searchRequest.fullname().isBlank()) {
-                String pattern = "%" + searchRequest.fullname().toLowerCase() + "%";
+            if (searchRequest.getFullname() != null && !searchRequest.getFullname().isBlank()) {
+                String pattern = "%" + searchRequest.getFullname().toLowerCase() + "%";
 
                 Predicate firstNamePredicate = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("firstName")),
@@ -37,8 +37,8 @@ public class UserSpecification {
             }
 
             // Search by address (partial match)
-            if (searchRequest.address() != null && !searchRequest.address().isBlank()) {
-                String pattern = "%" + searchRequest.address().toLowerCase() + "%";
+            if (searchRequest.getAddress() != null && !searchRequest.getAddress().isBlank()) {
+                String pattern = "%" + searchRequest.getAddress().toLowerCase() + "%";
 
                 predicate = criteriaBuilder.and(
                         predicate,
@@ -47,8 +47,8 @@ public class UserSpecification {
             }
 
             // Search by email (exact match)
-            if (searchRequest.email() != null && !searchRequest.email().isBlank()) {
-                String pattern = "%" + searchRequest.email().toLowerCase() + "%";
+            if (searchRequest.getEmail() != null && !searchRequest.getEmail().isBlank()) {
+                String pattern = "%" + searchRequest.getEmail().toLowerCase() + "%";
                 predicate = criteriaBuilder.and(
                         predicate,
                         criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), pattern)
@@ -56,17 +56,17 @@ public class UserSpecification {
             }
 
             // Filter by active status
-            if (searchRequest.isActive() != null) { // assuming Boolean
+            if (searchRequest.getIsActive() != null) {
                 predicate = criteriaBuilder.and(
                         predicate,
-                        criteriaBuilder.equal(root.get("isActive"), searchRequest.isActive())
+                        criteriaBuilder.equal(root.get("isActive"), searchRequest.getIsActive())
                 );
             }
 
-            if (searchRequest.role() != null) {
+            if (searchRequest.getRole() != null) {
                 predicate = criteriaBuilder.and(
                         predicate,
-                        criteriaBuilder.equal(root.get("role"), searchRequest.role())
+                        criteriaBuilder.equal(root.get("role"), searchRequest.getRole())
                 );
             }
 

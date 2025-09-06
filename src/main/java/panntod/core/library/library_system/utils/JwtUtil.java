@@ -2,6 +2,8 @@ package panntod.core.library.library_system.utils;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import panntod.core.library.library_system.enums.TokenType;
+import panntod.core.library.library_system.enums.UserRole;
 
 import java.security.Key;
 import java.util.Date;
@@ -14,11 +16,12 @@ public class JwtUtil {
     private static final long ACCESS_TOKEN_EXP = 1000 * 60 * 15; // 15 minutes
     private static final long REFRESH_TOKEN_EXP = 1000 * 60 * 60 * 24 * 7; // 7 days
 
-    public static String generateAccessToken(UUID userId, String email) {
+    public static String generateAccessToken(UUID userId, String email, UserRole role) {
         return Jwts.builder()
                 .setSubject(userId.toString())
                 .claim("email", email)
-                .claim("type", "access")
+                .claim("role", role)
+                .claim("type", TokenType.ACCESS)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXP))
                 .signWith(key)
@@ -28,7 +31,7 @@ public class JwtUtil {
     public static String generateRefreshToken(UUID userId) {
         return Jwts.builder()
                 .setSubject(userId.toString())
-                .claim("type", "refresh")
+                .claim("type", TokenType.REFRESH)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXP))
                 .signWith(key)
@@ -42,9 +45,16 @@ public class JwtUtil {
                 .parseClaimsJws(token);
     }
 
-    public static UUID getUserIdFromToken(String token, String expectedType) {
+    public static UUID getUserIdFromToken(String token, TokenType expectedType) {
         Claims claims = parseToken(token).getBody();
-        String tokenType = claims.get("type", String.class);
+        String tokenTypeStr = claims.get("type", String.class);
+
+        TokenType tokenType;
+        try {
+            tokenType = TokenType.valueOf(tokenTypeStr); // konversi String ke Enum
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new JwtException("Invalid token type value in JWT: " + tokenTypeStr, e);
+        }
 
         if (!expectedType.equals(tokenType)) {
             throw new JwtException("Invalid token type. Expected " + expectedType + " but got " + tokenType);
@@ -52,4 +62,5 @@ public class JwtUtil {
 
         return UUID.fromString(claims.getSubject());
     }
+
 }
