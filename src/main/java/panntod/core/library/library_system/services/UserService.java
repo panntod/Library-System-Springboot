@@ -84,7 +84,8 @@ public class UserService {
         existing.setPhoneNumber(updateDto.getPhoneNumber());
 
         // Only Super Admin
-        existing.setIsActive(updateDto.getIsActive());
+        if (updateDto.getIsActive() != null) existing.setIsActive(updateDto.getIsActive());
+        if (updateDto.getRole() != null) existing.setRole(updateDto.getRole());
 
         if (updateDto.getPassword() != null && !updateDto.getPassword().isBlank()) {
             existing.setPassword(PasswordUtil.hashPassword(updateDto.getPassword()));
@@ -111,6 +112,7 @@ public class UserService {
 
         // Only Super Admin
         if (patchDto.isActive() != null) existing.setIsActive(patchDto.isActive());
+        if (patchDto.role() != null) existing.setRole(patchDto.role());
 
         if (patchDto.password() != null && !patchDto.password().isBlank()) {
             existing.setPassword(PasswordUtil.hashPassword(patchDto.password()));

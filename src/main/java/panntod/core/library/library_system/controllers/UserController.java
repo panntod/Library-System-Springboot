@@ -9,6 +9,7 @@ import panntod.core.library.library_system.dto.commons.LoginResponse;
 import panntod.core.library.library_system.dto.commons.PageResponse;
 import panntod.core.library.library_system.dto.commons.TokenResponse;
 import panntod.core.library.library_system.dto.users.*;
+import panntod.core.library.library_system.enums.UserRole;
 import panntod.core.library.library_system.services.UserService;
 import panntod.core.library.library_system.utils.SortUtil;
 
@@ -55,10 +56,11 @@ public class UserController {
             @RequestParam(required = false) String fullname,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String address,
-            @RequestParam(required = false) Boolean isActive
-    ) {
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) UserRole role
+            ) {
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), size, SortUtil.parseSortParam(sort));
-        UserSearchRequest req = new UserSearchRequest(fullname, email, address, isActive);
+        UserSearchRequest req = new UserSearchRequest(fullname, email, address, isActive, role);
         return ResponseEntity.ok(userService.search(req, pageable));
     }
 

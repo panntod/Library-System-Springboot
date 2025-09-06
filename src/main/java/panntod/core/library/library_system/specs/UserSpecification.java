@@ -63,6 +63,13 @@ public class UserSpecification {
                 );
             }
 
+            if (searchRequest.role() != null) {
+                predicate = criteriaBuilder.and(
+                        predicate,
+                        criteriaBuilder.equal(root.get("role"), searchRequest.role())
+                );
+            }
+
             return predicate;
         };
     }

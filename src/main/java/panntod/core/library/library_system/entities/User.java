@@ -2,6 +2,7 @@ package panntod.core.library.library_system.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import panntod.core.library.library_system.enums.UserRole;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -38,6 +39,10 @@ public class User {
     private String phoneNumber;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserRole role = UserRole.USER;
+
+    @Column(nullable = false)
     private Boolean isActive = true;
 
     @Column(nullable = false, updatable = false)
@@ -53,10 +58,15 @@ public class User {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.fullName = this.firstName + " " + this.lastName;
+
         if (this.isActive == null) {
             this.isActive = true;
         }
-        this.fullName = this.firstName + " " + this.lastName;
+
+        if(this.role == null) {
+            this.role = UserRole.USER;
+        }
     }
 
     @PreUpdate
