@@ -58,11 +58,19 @@ public class Borrow {
     @Column
     private Double penalty = 0.0;
 
+    @Column
+    private Boolean isActive = true;
+
     @PrePersist
     protected void onCreate() {
         if (this.borrowDate == null) {
             this.borrowDate = LocalDateTime.now();
         }
+
+        if (this.isActive == null) {
+            this.isActive = true;
+        }
+        
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

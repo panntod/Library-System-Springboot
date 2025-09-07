@@ -15,6 +15,7 @@ public record BorrowDto(
         LocalDateTime returnDate,
         Double penalty,
         String status,
+        Boolean isActive,
         List<BorrowItemDto> items,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

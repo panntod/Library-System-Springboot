@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import panntod.core.library.library_system.dto.borrows.*;
 import panntod.core.library.library_system.dto.commons.ApiResponse;
 import panntod.core.library.library_system.dto.commons.PageResponse;
+import panntod.core.library.library_system.enums.BorrowStatus;
 import panntod.core.library.library_system.services.BorrowService;
 import panntod.core.library.library_system.utils.SortUtil;
 
@@ -16,6 +17,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * REST Controller untuk transactional Borrow.
+ * <p>
+ * Endpoint:
+ * - POST   /api/borrows                                        -> create peminjaman baru
+ * - POST   /api/borrows/{borrowId}/return?adminId={adminId}    -> create peminjaman baru
+ * - GET    /api/borrows                                        -> list peminjaman dengan pagination + sorting
+ * - GET    /api/borrows/{borrowId}                             -> peminjaman berdasarkan id
+ * - GET    /api/borrows/{borrowId}                             -> peminjaman berdasarkan id
+ */
 @RestController
 @RequestMapping("/api/borrows")
 public class BorrowController {
@@ -47,15 +58,16 @@ public class BorrowController {
             @RequestParam(required = false) List<String> sort,
             @RequestParam(required = false) UUID memberId,
             @RequestParam(required = false) UUID adminId,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) BorrowStatus status,
             @RequestParam(required = false) LocalDateTime borrowDateFrom,
             @RequestParam(required = false) LocalDateTime borrowDateTo,
             @RequestParam(required = false) Double penaltyFrom,
-            @RequestParam(required = false) Double penaltyTo
+            @RequestParam(required = false) Double penaltyTo,
+            @RequestParam(defaultValue = "false") boolean showSoftDelete
     ) {
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), size, SortUtil.parseSortParam(sort));
-        BorrowSearchRequest req = new BorrowSearchRequest(memberId, adminId, status, borrowDateFrom, borrowDateTo, penaltyFrom, penaltyTo);
-        return ResponseEntity.ok(borrowService.search(req, pageable));
+        BorrowSearchRequest req = new BorrowSearchRequest(memberId, adminId, status, borrowDateFrom, borrowDateTo, penaltyFrom, penaltyTo, null);
+        return ResponseEntity.ok(borrowService.search(req, pageable, showSoftDelete ));
     }
 
     /**

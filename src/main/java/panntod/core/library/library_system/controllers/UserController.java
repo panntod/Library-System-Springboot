@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * REST Controller untuk resource Product.
+ * REST Controller untuk resource User.
  * <p>
  * Endpoint:
  * - POST   /api/login              -> Login

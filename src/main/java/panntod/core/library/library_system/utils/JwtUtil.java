@@ -13,6 +13,10 @@ public class JwtUtil {
     private static final String SECRET = "super_rahasia_panjang_banget_minimal_32_char!";
     private static final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
+    private JwtUtil() {
+        // prevent instantiation
+    }
+
     private static final long ACCESS_TOKEN_EXP = 1000 * 60 * 15; // 15 minutes
     private static final long REFRESH_TOKEN_EXP = 1000 * 60 * 60 * 24 * 7; // 7 days
 

@@ -6,6 +6,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import panntod.core.library.library_system.enums.UserRole;
 
 public class UserRoleUtil {
+    private UserRoleUtil() {
+        // prevent instantiation
+    }
+
     public static UserRole getCurrentUserRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getAuthorities() != null && !auth.getAuthorities().isEmpty()) {

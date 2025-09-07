@@ -2,6 +2,7 @@ package panntod.core.library.library_system.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import panntod.core.library.library_system.dto.borrows.*;
@@ -11,6 +12,7 @@ import panntod.core.library.library_system.entities.Borrow;
 import panntod.core.library.library_system.entities.BorrowItem;
 import panntod.core.library.library_system.entities.User;
 import panntod.core.library.library_system.enums.BorrowStatus;
+import panntod.core.library.library_system.enums.UserRole;
 import panntod.core.library.library_system.mappers.BorrowMapper;
 import panntod.core.library.library_system.mappers.BorrowItemMapper;
 import panntod.core.library.library_system.repositories.BookRepository;
@@ -18,6 +20,7 @@ import panntod.core.library.library_system.repositories.BorrowRepository;
 import panntod.core.library.library_system.repositories.UserRepository;
 import panntod.core.library.library_system.specs.BorrowSpecification;
 import panntod.core.library.library_system.utils.PenaltyUtil;
+import panntod.core.library.library_system.utils.UserRoleUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -127,7 +130,15 @@ public class BorrowService {
      * SEARCH Borrow transactions
      */
     @Transactional(readOnly = true)
-    public PageResponse<BorrowDto> search(BorrowSearchRequest req, Pageable pageable) {
+    public PageResponse<BorrowDto> search(BorrowSearchRequest req, Pageable pageable, boolean showSoftDelete) {
+        if (showSoftDelete) {
+            if (UserRoleUtil.getCurrentUserRole() != UserRole.SUPER_ADMIN) {
+                throw new AccessDeniedException("Only SUPER_ADMIN can view soft deleted data");
+            }
+        } else {
+            req.setIsActive(true);
+        }
+
         var spec = BorrowSpecification.bySearch(req);
         Page<Borrow> page = borrowRepo.findAll(spec, pageable);
 
@@ -159,9 +170,9 @@ public class BorrowService {
      */
     @Transactional
     public void delete(UUID id) {
-        if (!borrowRepo.existsById(id)) {
-            throw new RuntimeException("Borrow transaction not found");
-        }
-        borrowRepo.deleteById(id);
+        Borrow borrow = borrowRepo.findById(id).orElseThrow(() -> new RuntimeException("Borrow transaction not found"));
+        borrow.setIsActive(false);
+
+        borrowRepo.save(borrow);
     }
 }

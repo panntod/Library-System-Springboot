@@ -8,8 +8,6 @@ import org.springframework.data.jpa.domain.Specification;
 import panntod.core.library.library_system.dto.borrows.BorrowSearchRequest;
 import panntod.core.library.library_system.entities.Borrow;
 
-import java.util.UUID;
-
 public class BorrowSpecification {
 
     public static Specification<Borrow> bySearch(BorrowSearchRequest searchRequest) {
@@ -22,55 +20,62 @@ public class BorrowSpecification {
             }
 
             // Filter by memberId
-            if (searchRequest.memberId() != null) {
+            if (searchRequest.getMemberId() != null) {
                 predicate = criteriaBuilder.and(
                         predicate,
-                        criteriaBuilder.equal(root.get("member").get("id"), searchRequest.memberId())
+                        criteriaBuilder.equal(root.get("member").get("id"), searchRequest.getMemberId())
                 );
             }
 
             // Filter by adminId
-            if (searchRequest.adminId() != null) {
+            if (searchRequest.getAdminId() != null) {
                 predicate = criteriaBuilder.and(
                         predicate,
-                        criteriaBuilder.equal(root.get("admin").get("id"), searchRequest.adminId())
+                        criteriaBuilder.equal(root.get("admin").get("id"), searchRequest.getAdminId())
                 );
             }
 
             // Filter by status
-            if (searchRequest.status() != null && !searchRequest.status().isBlank()) {
+            if (searchRequest.getStatus() != null) {
                 predicate = criteriaBuilder.and(
                         predicate,
-                        criteriaBuilder.equal(criteriaBuilder.lower(root.get("status")), searchRequest.status().toLowerCase())
+                        criteriaBuilder.equal(criteriaBuilder.lower(root.get("status")), searchRequest.getStatus())
                 );
             }
 
             // Filter by borrowDate range
-            if (searchRequest.borrowDateFrom() != null) {
+            if (searchRequest.getBorrowDateFrom() != null) {
                 predicate = criteriaBuilder.and(
                         predicate,
-                        criteriaBuilder.greaterThanOrEqualTo(root.get("borrowDate"), searchRequest.borrowDateFrom())
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("borrowDate"), searchRequest.getBorrowDateFrom())
                 );
             }
 
-            if (searchRequest.borrowDateTo() != null) {
+            if (searchRequest.getBorrowDateTo() != null) {
                 predicate = criteriaBuilder.and(
                         predicate,
-                        criteriaBuilder.lessThanOrEqualTo(root.get("borrowDate"), searchRequest.borrowDateTo())
+                        criteriaBuilder.lessThanOrEqualTo(root.get("borrowDate"), searchRequest.getBorrowDateTo())
                 );
             }
 
-            if (searchRequest.penaltyFrom() != null) {
+            if (searchRequest.getPenaltyFrom() != null) {
                 predicate = criteriaBuilder.and(
                         predicate,
-                        criteriaBuilder.greaterThanOrEqualTo(root.get("penalty"), searchRequest.penaltyFrom())
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("penalty"), searchRequest.getPenaltyFrom())
                 );
             }
 
-            if (searchRequest.penaltyTo() != null) {
+            if (searchRequest.getPenaltyTo() != null) {
                 predicate = criteriaBuilder.and(
                         predicate,
-                        criteriaBuilder.lessThanOrEqualTo(root.get("penalty"), searchRequest.penaltyTo())
+                        criteriaBuilder.lessThanOrEqualTo(root.get("penalty"), searchRequest.getPenaltyTo())
+                );
+            }
+
+            if (searchRequest.getIsActive() != null) {
+                predicate = criteriaBuilder.and(
+                        predicate,
+                        criteriaBuilder.equal(root.get("isActive"), searchRequest.getIsActive())
                 );
             }
 

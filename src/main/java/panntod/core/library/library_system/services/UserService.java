@@ -2,8 +2,6 @@ package panntod.core.library.library_system.services;
 
 import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import panntod.core.library.library_system.dto.commons.LoginResponse;

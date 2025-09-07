@@ -6,6 +6,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class PasswordUtil {
     private static final PasswordEncoder encoder = new BCryptPasswordEncoder();
 
+    private PasswordUtil() {
+        // prevent instantiation
+    }
+
     public static String hashPassword(String rawPassword) {
         return encoder.encode(rawPassword);
     }

@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * REST Controller untuk resource Product.
+ * REST Controller untuk resource Books.
  * <p>
  * Endpoint:
  * - POST   /api/books              -> create produk baru
